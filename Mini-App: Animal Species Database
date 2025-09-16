@@ -1,0 +1,116 @@
+import tkinter as tk
+from tkinter import messagebox, ttk
+import json
+import os
+
+class AnimalSpeciesApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Animal Species Database")
+        self.root.geometry("600x400")
+
+        # Initialize data file
+        self.data_file = "species_data.json"
+        self.species_list = self.load_data()
+
+        # GUI Elements
+        self.create_widgets()
+
+    def load_data(self):
+        if os.path.exists(self.data_file):
+            with open(self.data_file, 'r') as f:
+                return json.load(f)
+        return []
+
+    def save_data(self):
+        with open(self.data_file, 'w') as f:
+            json.dump(self.species_list, f, indent=4)
+
+    def create_widgets(self):
+        # Input Frame
+        input_frame = tk.Frame(self.root)
+        input_frame.pack(pady=10)
+
+        # Labels and Entries
+        tk.Label(input_frame, text="Species Name:").grid(row=0, column=0, padx=5)
+        self.name_entry = tk.Entry(input_frame)
+        self.name_entry.grid(row=0, column=1, padx=5)
+
+        tk.Label(input_frame, text="Habitat:").grid(row=1, column=0, padx=5)
+        self.habitat_entry = tk.Entry(input_frame)
+        self.habitat_entry.grid(row=1, column=1, padx=5)
+
+        tk.Label(input_frame, text="Population:").grid(row=2, column=0, padx=5)
+        self.population_entry = tk.Entry(input_frame)
+        self.population_entry.grid(row=2, column=1, padx=5)
+
+        # Buttons
+        tk.Button(input_frame, text="Add Species", command=self.add_species).grid(row=3, column=0, columnspan=2, pady=10)
+        tk.Button(input_frame, text="Delete Selected", command=self.delete_species).grid(row=3, column=1, columnspan=2, pady=10)
+
+        # Treeview for displaying data
+        self.tree = ttk.Treeview(self.root, columns=("Name", "Habitat", "Population"), show="headings")
+        self.tree.heading("Name", text="Species Name")
+        self.tree.heading("Habitat", text="Habitat")
+        self.tree.heading("Population", text="Population")
+        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Populate Treeview
+        self.update_treeview()
+
+    def add_species(self):
+        name = self.name_entry.get().strip()
+        habitat = self.habitat_entry.get().strip()
+        population = self.population_entry.get().strip()
+
+        if not name or not habitat or not population:
+            messagebox.showerror("Error", "All fields are required!")
+            return
+
+        try:
+            population = int(population)
+            if population < 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Error", "Population must be a non-negative number!")
+            return
+
+        # Add to list and save
+        self.species_list.append({"name": name, "habitat": habitat, "population": population})
+        self.save_data()
+        self.update_treeview()
+
+        # Clear entries
+        self.name_entry.delete(0, tk.END)
+        self.habitat_entry.delete(0, tk.END)
+        self.population_entry.delete(0, tk.END)
+
+    def delete_species(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Select a species to delete!")
+            return
+
+        # Get selected item
+        item = self.tree.item(selected[0])
+        name = item["values"][0]
+
+        # Confirm deletion
+        if messagebox.askyesno("Confirm", f"Delete {name}?"):
+            self.species_list = [s for s in self.species_list if s["name"] != name]
+            self.save_data()
+            self.update_treeview()
+
+    def update_treeview(self):
+        # Clear current Treeview
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Populate with data
+        for species in self.species_list:
+            self.tree.insert("", tk.END, values=(species["name"], species["habitat"], species["population"]))
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AnimalSpeciesApp(root)
+    root.mainloop()
