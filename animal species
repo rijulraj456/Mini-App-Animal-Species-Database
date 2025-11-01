@@ -1,0 +1,81 @@
+-- Create the database
+CREATE DATABASE animal_species_db;
+USE animal_species_db;
+
+-- Conservation Status table
+CREATE TABLE conservation_status (
+    status_id INT AUTO_INCREMENT PRIMARY KEY,
+    status_name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+
+-- Species table
+CREATE TABLE species (
+    species_id INT AUTO_INCREMENT PRIMARY KEY,
+    common_name VARCHAR(100) NOT NULL,
+    scientific_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    population_estimate INT,
+    status_id INT,
+    FOREIGN KEY (status_id) REFERENCES conservation_status(status_id)
+);
+
+-- Taxonomy table
+CREATE TABLE taxonomy (
+    taxonomy_id INT AUTO_INCREMENT PRIMARY KEY,
+    species_id INT UNIQUE,
+    kingdom VARCHAR(50),
+    phylum VARCHAR(50),
+    class VARCHAR(50),
+    order VARCHAR(50),
+    family VARCHAR(50),
+    genus VARCHAR(50),
+    FOREIGN KEY (species_id) REFERENCES species(species_id)
+);
+
+-- Habitat table
+CREATE TABLE habitat (
+    habitat_id INT AUTO_INCREMENT PRIMARY KEY,
+    species_id INT,
+    habitat_type VARCHAR(100),
+    geographic_range VARCHAR(255),
+    FOREIGN KEY (species_id) REFERENCES species(species_id)
+);
+
+-- Physical Characteristics table
+CREATE TABLE physical_characteristics (
+    characteristic_id INT AUTO_INCREMENT PRIMARY KEY,
+    species_id INT UNIQUE,
+    average_weight_kg FLOAT,
+    average_length_cm FLOAT,
+    lifespan_years INT,
+    FOREIGN KEY (species_id) REFERENCES species(species_id)
+);
+
+-- Insert conservation statuses
+INSERT INTO conservation_status (status_name, description) VALUES
+('Endangered', 'At high risk of extinction in the near future'),
+('Least Concern', 'Widespread and abundant, no immediate threat');
+
+-- Insert species
+INSERT INTO species (common_name, scientific_name, description, population_estimate, status_id) VALUES
+('Bengal Tiger', 'Panthera tigris tigris', 'Large carnivorous feline native to India', 2500, 1),
+('Bald Eagle', 'Haliaeetus leucocephalus', 'Bird of prey found in North America', 70000, 2);
+
+-- Insert taxonomy
+INSERT INTO taxonomy (species_id, kingdom, phylum, class, order, family, genus) VALUES
+(1, 'Animalia', 'Chordata', 'Mammalia', 'Carnivora', 'Felidae', 'Panthera'),
+(2, 'Animalia', 'Chordata', 'Aves', 'Accipitriformes', 'Accipitridae', 'Haliaeetus');
+
+-- Insert habitats
+INSERT INTO habitat (species_id, habitat_type, geographic_range) VALUES
+(1, 'Tropical Forest', 'India, Bangladesh'),
+(1, 'Grassland', 'Sundarbans'),
+(2, 'Coastal', 'North America'),
+(2, 'Forest', 'Canada, USA');
+
+-- Insert physical characteristics
+INSERT INTO physical_characteristics (species_id, average_weight_kg, average_length_cm, lifespan_years) VALUES
+(1, 220, 270, 15),
+(2, 5.5, 90, 20);
+
